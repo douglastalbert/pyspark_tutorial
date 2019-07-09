@@ -1,7 +1,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (StructField,StringType,
                                 IntegerType,StructType)
-from pyspark.sql.functions import stddev, format_number
+from pyspark.sql.functions import (stddev, format_number,
+                                    mean, dayofmonth, hour,
+                                    dayofyear, month, year,
+                                    weekofyear, date_format)
 
 spark = SparkSession.builder.appName('Basics').getOrCreate()
 
@@ -46,3 +49,21 @@ sales_std.select(format_number('std',2)).show()
 
 df2.orderBy("Sales").show()
 df2.orderBy(df2["Sales"].desc()).show()
+
+#Missing Data
+df3 = spark.read.csv('Spark_DataFrames/ContainsNull.csv',header=True,inferSchema=True)
+
+df3.show()
+
+meanRow = df3.select(mean(df3['Sales'])).collect()
+meanSales = meanRow[0][0]
+df3.na.fill(meanSales,['Sales']).show()
+df3.na.drop(thresh=2).show()
+
+#Dates and Timestamps
+
+df4 = spark.read.csv("Spark_DataFrames/appl_stock.csv",header=True,inferSchema=True)
+df4.select(['Date','Open']).show()
+df4.select(dayofmonth(df4['Date'])).show()
+df4Y = df4.withColumn("Year", year(df4["Date"]))
+df4Y.groupBy("Year").mean().select(["Year", "avg(Close)"]).show()
