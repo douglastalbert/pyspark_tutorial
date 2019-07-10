@@ -66,3 +66,5 @@ print('Prediction:')
 model.transform(test.select('features')).show()
 print('Actual:')
 test.show()
+
+spark.stop()
